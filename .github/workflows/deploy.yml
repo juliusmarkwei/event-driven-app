@@ -7,7 +7,7 @@ on:
       - test
 
 env:
-  AWS_REGION: eu-central-1
+  AWS_REGION: ${{ secrets.AWS_REGION }}
   DEV_EMAILS: ${{ secrets.DEV_EMAILS }}
   PROD_EMAILS: ${{ secrets.PROD_EMAILS }}
 
