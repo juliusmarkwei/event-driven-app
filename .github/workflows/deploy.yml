@@ -51,7 +51,7 @@ jobs:
         run: npm run build
 
       - name: SAM Validate
-        run: sam validate --template ${{ env.SAM_TEMPLATE }}
+        run: sam validate --template ${{ env.SAM_TEMPLATE }} --debug
 
       - name: SAM Build
         run: sam build --template ${{ env.SAM_TEMPLATE }} --debug

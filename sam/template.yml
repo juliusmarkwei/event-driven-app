@@ -8,7 +8,7 @@ Parameters:
     Default: dev
   EmailAddresses:
     Type: CommaDelimitedList
-    Description: List of email addresses to subscribe to SNS
+    Description: List of email addresses to subscribe to SNS (comma-separated)
 
 Globals:
   Function:
@@ -16,7 +16,6 @@ Globals:
     Timeout: 10
 
 Resources:
-  # S3 Bucket
   UploadBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -26,12 +25,11 @@ Resources:
           - Event: s3:ObjectCreated:*
             Function: !GetAtt NotifyFunction.Arn
 
-  # Lambda Function
   NotifyFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      CodeUri: ../
+      CodeUri: ./dist
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationTopic.TopicName
@@ -39,7 +37,6 @@ Resources:
         Variables:
           SNS_TOPIC_ARN: !Ref NotificationTopic
 
-  # Lambda Permission for S3 Trigger
   S3TriggerPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -48,14 +45,12 @@ Resources:
       Principal: s3.amazonaws.com
       SourceArn: !GetAtt UploadBucket.Arn
 
-  # SNS Topic
   NotificationTopic:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: !Sub "upload-notification-${Environment}"
 
-  # SNS Subscriptions
-  EmailSubscriptions:
+  EmailSubscription:
     Type: AWS::SNS::Subscription
     DependsOn: NotificationTopic
     Properties:
