@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Environment:
+    Type: String
+    AllowedValues: [dev, prod]
+    Default: dev
+  EmailAddresses:
+    Type: CommaDelimitedList
+    Description: List of email addresses to subscribe to SNS
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 10
+
+Resources:
+  # S3 Bucket
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "upload-bucket-${Environment}-${AWS::AccountId}"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt NotifyFunction.Arn
+
+  # Lambda Function
+  NotifyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      CodeUri: ./lambda
+      Policies:
+        - SNSPublishMessagePolicy:
+            TopicName: !GetAtt NotificationTopic.TopicName
+      Environment:
+        Variables:
+          SNS_TOPIC_ARN: !Ref NotificationTopic
+
+  # Lambda Permission for S3 Trigger
+  S3TriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref NotifyFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt UploadBucket.Arn
+
+  # SNS Topic
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "upload-notification-${Environment}"
+
+  # SNS Subscriptions
+  EmailSubscriptions:
+    Type: AWS::SNS::Subscription
+    DependsOn: NotificationTopic
+    Properties:
+      Protocol: email
+      TopicArn: !Ref NotificationTopic
+      Endpoint: !Select [0, !Ref EmailAddresses]
+
+Outputs:
+  BucketName:
+    Value: !Ref UploadBucket
+  TopicArn:
+    Value: !Ref NotificationTopic
+  FunctionName:
+    Value: !Ref NotifyFunction
