@@ -54,18 +54,19 @@ jobs:
         run: sam validate --template ${{ env.SAM_TEMPLATE }}
 
       - name: SAM Build
-        run: sam build --template ${{ env.SAM_TEMPLATE }}
+        run: sam build --template ${{ env.SAM_TEMPLATE }} --debug
 
       - name: SAM Deploy
         run: |
           sam deploy \
-            --template-file .aws-sam/build/template.yaml \
+            --template-file ${{ env.SAM_TEMPLATE }} \
             --stack-name "eda-stack-${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}" \
             --region ${{ env.AWS_REGION }} \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --resolve-s3 \
+            --debug \
             --parameter-overrides \
               Environment=${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }} \
               EmailAddresses=${{ secrets.EMAIL_ADDRESSES }}
