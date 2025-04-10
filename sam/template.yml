@@ -19,7 +19,7 @@ Resources:
   UploadBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "upload-bucket-${Environment}-${AWS::AccountId}"
+      BucketName: !Sub "upload-mybucket-${Environment}-${AWS::AccountId}"
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*

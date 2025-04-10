@@ -1,0 +1,23 @@
+version = 0.1
+
+[dev]
+[dev.deploy]
+[dev.deploy.parameters]
+stack_name = "eda-stack-dev"
+capabilities = "CAPABILITY_IAM"
+region = "us-east-1"
+s3_prefix = "eda-stack-dev"
+resolve_s3 = true
+no_confirm_changeset = true
+no_fail_on_empty_changeset = true
+
+[prod]
+[prod.deploy]
+[prod.deploy.parameters]
+stack_name = "eda-stack-prod"
+capabilities = "CAPABILITY_IAM"
+region = "us-east-1"
+s3_prefix = "eda-stack-prod"
+resolve_s3 = true
+no_confirm_changeset = true
+no_fail_on_empty_changeset = true
