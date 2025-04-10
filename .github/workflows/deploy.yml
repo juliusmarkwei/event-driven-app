@@ -7,7 +7,7 @@ on:
       - test
 
 env:
-  AWS_REGION: us-east-1
+  AWS_REGION: eu-central-1
   DEV_EMAILS: ${{ secrets.DEV_EMAILS }}
   PROD_EMAILS: ${{ secrets.PROD_EMAILS }}
 
@@ -54,15 +54,15 @@ jobs:
           fi
 
       - name: Build SAM Application
-        run: sam build --template sam/template.yml
+        run: sam build --template-file sam/template.yml
 
       - name: Deploy SAM Application
         run: |
           BRANCH_NAME="${GITHUB_REF##*/}"
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            sam deploy --config-env prod --parameter-overrides "EmailAddresses=${PROD_EMAILS}"
+            sam deploy --template-file sam/template.yml --config-env prod --stack-name eda-stack-prod --parameter-overrides "EmailAddresses=${PROD_EMAILS}"
           elif [[ "$BRANCH_NAME" == "test" ]]; then
-            sam deploy --config-env dev --parameter-overrides "EmailAddresses=${DEV_EMAILS}"
+            sam deploy --template-file sam/template.yml --config-env dev --stack-name eda-stack-dev --parameter-overrides "EmailAddresses=${DEV_EMAILS}"
           else
             echo "Branch not configured for deployment: $BRANCH_NAME"
           fi
