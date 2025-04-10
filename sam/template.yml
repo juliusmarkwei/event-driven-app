@@ -29,7 +29,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      CodeUri: ./dist
+      CodeUri: ../dist  # Changed from ./dist to point to root dist/
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationTopic.TopicName

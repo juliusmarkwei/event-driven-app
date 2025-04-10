@@ -50,6 +50,9 @@ jobs:
       - name: Compile TypeScript
         run: npm run build
 
+      - name: Check Compiled Output
+        run: ls -la dist/
+
       - name: SAM Validate
         run: sam validate --template ${{ env.SAM_TEMPLATE }} --debug
 

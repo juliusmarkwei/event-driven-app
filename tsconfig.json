@@ -1,16 +1,13 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "lib": ["ES2020"],
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist",
-    "rootDir": "./",
-    "types": ["node"]
-  },
-  "include": ["*.ts"],
-  "exclude": ["node_modules", "sam", "dist"]
-}
+    "compilerOptions": {
+      "target": "ES2018",
+      "module": "commonjs",
+      "outDir": "./dist",
+      "rootDir": "./",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true
+    },
+    "include": ["index.ts"],
+    "exclude": ["node_modules", "sam", "dist"]
+  }
