@@ -3,7 +3,7 @@ import { S3Event } from 'aws-lambda';
 
 const sns = new AWS.SNS();
 
-exports.handler = async (event: S3Event): Promise<any> => {
+export const handler = async (event: S3Event): Promise<any> => {
     const record = event.Records[0];
     const bucket = record.s3.bucket.name;
     const key = record.s3.object.key;
