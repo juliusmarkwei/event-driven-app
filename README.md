@@ -97,7 +97,7 @@ This project implements a simple Event-Driven Architecture (EDA) using AWS serve
 2. **Add Secrets**:
    - `AWS_ACCESS_KEY_ID`: Your AWS Access Key ID.
    - `AWS_SECRET_ACCESS_KEY`: Your AWS Secret Access Key.
-   - `NOTIFICATION_EMAIL`: The email address to receive notifications (e.g., `user@example.com`).
+   - `EMAIL_ADDRESSES`: Comma-separated list of email addresses (e.g., `user1@example.com,user2@example.com`). The first email is auto-subscribed; others require manual subscription via the AWS SNS Console.
 
 ### Deployment
 - **Dev**: Push to `main` for automatic deployment.
@@ -116,11 +116,10 @@ This project implements a simple Event-Driven Architecture (EDA) using AWS serve
    - Click the link to subscribe (required for email delivery).
 
 ## Usage
-- **Upload a File**:
-  - Use the AWS S3 Console to upload a file to the `upload-bucket-dev-<AWS_ACCOUNT_ID>` bucket.
-- **Receive Notification**:
-  - The subscribed email address will receive a message like:
-    `New file uploaded: test.txt to bucket upload-bucket-dev-123456789012`.
+- **Upload a File**: Use the AWS S3 Console to upload a file to `upload-bucket-<env>-<AWS_ACCOUNT_ID>` (e.g., `upload-bucket-dev-123456789012`).
+- **Receive Notification**: The first email in `EMAIL_ADDRESSES` receives a message like:
+  `New file uploaded: test.txt to bucket upload-bucket-dev-123456789012`.
+- **Add More Subscribers**: Manually subscribe additional emails from `EMAIL_ADDRESSES` in the AWS SNS Console under the topic `upload-notification-<env>`.
 
 ## Testing
 1. **Manual Testing**:
