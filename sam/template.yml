@@ -18,9 +18,9 @@ Globals:
 Resources:
   UploadBucket:
     Type: AWS::S3::Bucket
-    DependsOn: S3TriggerPermission  # Ensure permission is created first
+    DependsOn: S3TriggerPermission
     Properties:
-      BucketName: !Sub "upload-mybucket-${Environment}-${AWS::AccountId}"
+      # Remove BucketName to avoid conflicts
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*
@@ -44,7 +44,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref NotifyFunction
       Principal: s3.amazonaws.com
-      SourceArn: "arn:aws:s3:::*"  # Wildcard ARN to break dependency
+      SourceArn: "arn:aws:s3:::*"
 
   NotificationTopic:
     Type: AWS::SNS::Topic
