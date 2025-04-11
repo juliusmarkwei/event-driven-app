@@ -18,8 +18,9 @@ Globals:
 Resources:
   UploadBucket:
     Type: AWS::S3::Bucket
+    DependsOn: S3TriggerPermission
     Properties:
-      BucketName: !Sub "upload-bucket-${Environment}-${AWS::AccountId}"
+      # Remove BucketName to avoid conflicts
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:*
@@ -29,7 +30,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      CodeUri: ../dist  # Changed from ./dist to point to root dist/
+      CodeUri: ../dist
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationTopic.TopicName
@@ -43,7 +44,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref NotifyFunction
       Principal: s3.amazonaws.com
-      SourceArn: !GetAtt UploadBucket.Arn
+      SourceArn: "arn:aws:s3:::*"
 
   NotificationTopic:
     Type: AWS::SNS::Topic

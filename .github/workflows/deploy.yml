@@ -4,72 +4,65 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy (dev or prod)'
-        required: true
-        default: 'dev'
+      - test
 
 env:
-  AWS_REGION: us-east-1
-  SAM_TEMPLATE: sam/template.yml
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  DEV_EMAILS: ${{ secrets.DEV_EMAILS }}
+  PROD_EMAILS: ${{ secrets.PROD_EMAILS }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build TypeScript Project
+        run: npm run build
+
+      - name: Setup AWS SAM CLI
+        uses: aws-actions/setup-sam@v2
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v3
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Install SAM CLI
-        run: pip install aws-sam-cli
-
-      - name: Install Node.js and Dependencies
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm install
-
       - name: Validate Emails
         run: |
-          if [[ ! "${{ secrets.EMAIL_ADDRESSES }}" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(,[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})*$ ]]; then
-            echo "Invalid email format in EMAIL_ADDRESSES secret"
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            EMAILS="${{ secrets.PROD_EMAILS }}"
+          elif [[ "$BRANCH_NAME" == "test" ]]; then
+            EMAILS="${{ secrets.DEV_EMAILS }}"
+          fi
+          if [[ ! "$EMAILS" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}(,[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})*$ ]]; then
+            echo "Invalid email format in ${BRANCH_NAME} email secret"
             exit 1
           fi
 
-      - name: Compile TypeScript
-        run: npm run build
+      - name: Build SAM Application
+        run: sam build --template-file sam/template.yml
 
-      - name: Check Compiled Output
-        run: ls -la dist/
-
-      - name: SAM Validate
-        run: sam validate --template ${{ env.SAM_TEMPLATE }} --debug
-
-      - name: SAM Build
-        run: sam build --template ${{ env.SAM_TEMPLATE }} --debug
-
-      - name: SAM Deploy
+      - name: Deploy SAM Application
         run: |
-          sam deploy \
-            --template-file ${{ env.SAM_TEMPLATE }} \
-            --stack-name "eda-stack-${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }}" \
-            --region ${{ env.AWS_REGION }} \
-            --capabilities CAPABILITY_IAM \
-            --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --resolve-s3 \
-            --debug \
-            --parameter-overrides \
-              Environment=${{ github.event_name == 'push' && 'dev' || github.event.inputs.environment }} \
-              EmailAddresses=${{ secrets.EMAIL_ADDRESSES }}
+          BRANCH_NAME="${GITHUB_REF##*/}"
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            sam deploy --template-file sam/template.yml --config-env prod --stack-name eda-stack-prod --region ${{ env.AWS_REGION }} --parameter-overrides "EmailAddresses=${PROD_EMAILS}" --debug
+          elif [[ "$BRANCH_NAME" == "test" ]]; then
+            sam deploy --template-file sam/template.yml --config-env dev --stack-name eda-stack-dev --region ${{ env.AWS_REGION }} --parameter-overrides "EmailAddresses=${DEV_EMAILS}" --debug
+          else
+            echo "Branch not configured for deployment: $BRANCH_NAME"
+          fi
