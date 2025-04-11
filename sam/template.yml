@@ -18,6 +18,7 @@ Globals:
 Resources:
   UploadBucket:
     Type: AWS::S3::Bucket
+    DependsOn: S3TriggerPermission  # Ensure permission is set before bucket notification
     Properties:
       BucketName: !Sub "upload-mybucket-${Environment}-${AWS::AccountId}"
       NotificationConfiguration:
@@ -29,7 +30,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      CodeUri: ../dist  # Changed from ./dist to point to root dist/
+      CodeUri: ../dist
       Policies:
         - SNSPublishMessagePolicy:
             TopicName: !GetAtt NotificationTopic.TopicName
