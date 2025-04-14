@@ -60,9 +60,9 @@ jobs:
         run: |
           BRANCH_NAME="${GITHUB_REF##*/}"
           if [[ "$BRANCH_NAME" == "main" ]]; then
-            sam deploy --template-file sam/template.yml --config-env prod --stack-name eda-stack-prod --region ${{ env.AWS_REGION }} --parameter-overrides "EmailAddresses=${PROD_EMAILS}" --debug
+            sam deploy --template-file sam/template.yml --config-env prod --stack-name eda-stack-prod --region ${{ env.AWS_REGION }} --parameter-overrides "Environment=prod EmailAddresses=${{ secrets.PROD_EMAILS }}" --debug
           elif [[ "$BRANCH_NAME" == "test" ]]; then
-            sam deploy --template-file sam/template.yml --config-env dev --stack-name eda-stack-dev --region ${{ env.AWS_REGION }} --parameter-overrides "EmailAddresses=${DEV_EMAILS}" --debug
+            sam deploy --template-file sam/template.yml --config-env dev --stack-name eda-stack-dev --region ${{ env.AWS_REGION }} --parameter-overrides "Environment=dev EmailAddresses=${{ secrets.DEV_EMAILS }}" --debug
           else
             echo "Branch not configured for deployment: $BRANCH_NAME"
           fi
